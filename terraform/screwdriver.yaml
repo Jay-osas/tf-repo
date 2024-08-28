@@ -1,0 +1,37 @@
+# screwdriver.yaml
+
+# Define the shared environment for the pipeline
+shared:
+  image: hashicorp/terraform:latest # Use the official Terraform Docker image
+  environment:
+    TF_LOG: TRACE  # Optional: Enable detailed logging for Terraform
+
+# Define jobs that will run in the pipeline
+jobs:
+  # Job to initialize Terraform and validate the configuration
+  validate:
+    steps:
+      - init: |
+          terraform init
+      - validate: |
+          terraform validate
+
+  # Job to format the Terraform files
+  format:
+    steps:
+      - fmt: |
+          terraform fmt -check
+
+  # Job to generate a Terraform plan
+  plan:
+    steps:
+      - init: |
+          terraform init
+      - plan: |
+          terraform plan
+
+# Define the pipeline workflow
+workflow:
+  - validate
+  - format
+  - plan
