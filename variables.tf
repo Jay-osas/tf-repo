@@ -14,7 +14,7 @@ variable "res_grp_location" {
 variable "sub_id" {
     type = string
     description = "subscription id"
-    default     = ""
+    default     = "07503d7f-648c-4d3b-8d21-8e574fe50dd4"
 
 }
 
