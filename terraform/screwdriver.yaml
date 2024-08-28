@@ -1,37 +1,70 @@
-# screwdriver.yaml
-
-# Define the shared environment for the pipeline
-shared:
-  image: hashicorp/terraform:latest # Use the official Terraform Docker image
-  environment:
-    TF_LOG: TRACE  # Optional: Enable detailed logging for Terraform
+---
+version: "4"
 
 # Define jobs that will run in the pipeline
 jobs:
-  # Job to initialize Terraform and validate the configuration
-  validate:
+  # Node.js related job
+  main:
+    image: node:14  # Using Node.js 14 as the base image for this job
+    environment:
+      NODE_ENV: test  # Set the environment to "test" for the main job
     steps:
       - init: |
+          echo "Installing dependencies..."
+          npm install
+      - test: |
+          echo "Running tests..."
+          npm test
+      - coverage: |
+          echo "Running coverage..."
+          if [ -f ./node_modules/.bin/nyc ]; then
+            ./node_modules/.bin/nyc npm test || echo "NYC coverage failed";
+          else
+            echo "NYC not found, skipping coverage";
+          fi
+          if [ -f ./node_modules/.bin/codecov ]; then
+            ./node_modules/.bin/codecov || echo "Codecov upload failed";
+          else
+            echo "Codecov not found, skipping upload";
+          fi
+
+  # Terraform related jobs
+  validate:
+    image: hashicorp/terraform:latest  # Use the official Terraform Docker image
+    environment:
+      TF_LOG: TRACE  # Enable detailed logging for Terraform
+    steps:
+      - init: |
+          echo "Initializing Terraform..."
           terraform init
       - validate: |
+          echo "Validating Terraform configuration..."
           terraform validate
 
-  # Job to format the Terraform files
   format:
+    image: hashicorp/terraform:latest  # Use the official Terraform Docker image
+    environment:
+      TF_LOG: TRACE  # Enable detailed logging for Terraform
     steps:
       - fmt: |
+          echo "Checking Terraform file formatting..."
           terraform fmt -check
 
-  # Job to generate a Terraform plan
   plan:
+    image: hashicorp/terraform:latest  # Use the official Terraform Docker image
+    environment:
+      TF_LOG: TRACE  # Enable detailed logging for Terraform
     steps:
       - init: |
+          echo "Initializing Terraform..."
           terraform init
       - plan: |
+          echo "Generating Terraform plan..."
           terraform plan
 
 # Define the pipeline workflow
 workflow:
+  - main
   - validate
   - format
   - plan
