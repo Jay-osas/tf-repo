@@ -3,7 +3,7 @@
 name: terraform-pipeline
 version: "1.0"
 description: "Pipeline to validate and plan Terraform configuration"
-maintainer: "your-email@example.com"
+maintainer: "jay.osemwenkha@outlook.com"
 
 # Define the configuration and steps
 config:
