@@ -1,0 +1,26 @@
+# screwdriver.yaml
+
+# Define the jobs that Screwdriver will execute
+jobs:
+  # This is the default job
+  main:
+    steps:
+      - install: 
+          # Install Terraform CLI
+          commands:
+            - apt-get update && apt-get install -y wget unzip
+            - wget https://releases.hashicorp.com/terraform/$(curl -s https://api.github.com/repos/hashicorp/terraform/releases/latest | grep -Po '"tag_name": "\K[0-9.]+(?=")')/terraform_$(curl -s https://api.github.com/repos/hashicorp/terraform/releases/latest | grep -Po '"tag_name": "\K[0-9.]+(?=")').zip
+            - unzip terraform_*.zip && mv terraform /usr/local/bin/
+
+      - validate:
+          # Initialize Terraform and validate the configuration
+          commands:
+            - terraform init
+            - terraform validate
+
+      - plan:
+          # Create a Terraform plan
+          commands:
+            - terraform plan -out=tfplan
+
+  # You can add more jobs here if needed
