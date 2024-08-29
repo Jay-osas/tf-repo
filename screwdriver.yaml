@@ -1,26 +1,28 @@
 # screwdriver.yaml
 
-# Define the jobs that Screwdriver will execute
-jobs:
-  # This is the default job
-  main:
-    steps:
-      - install: 
-          # Install Terraform CLI
-          commands:
-            - apt-get update && apt-get install -y wget unzip
-            - wget https://releases.hashicorp.com/terraform/$(curl -s https://api.github.com/repos/hashicorp/terraform/releases/latest | grep -Po '"tag_name": "\K[0-9.]+(?=")')/terraform_$(curl -s https://api.github.com/repos/hashicorp/terraform/releases/latest | grep -Po '"tag_name": "\K[0-9.]+(?=")').zip
-            - unzip terraform_*.zip && mv terraform /usr/local/bin/
+name: terraform-pipeline
+version: "1.0"
+description: "Pipeline to validate and plan Terraform configuration"
+maintainer: "your-email@example.com"
 
-      - validate:
-          # Initialize Terraform and validate the configuration
-          commands:
-            - terraform init
-            - terraform validate
+# Define the configuration and steps
+config:
+  image: node:18
+  steps:
+    - install: |
+        # Install Terraform CLI
+        apt-get update && apt-get install -y wget unzip
+        LATEST_TERRAFORM_VERSION=$(curl -s https://api.github.com/repos/hashicorp/terraform/releases/latest | grep -Po '"tag_name": "\K[0-9.]+(?=")')
+        wget https://releases.hashicorp.com/terraform/${LATEST_TERRAFORM_VERSION}/terraform_${LATEST_TERRAFORM_VERSION}_linux_amd64.zip
+        unzip terraform_${LATEST_TERRAFORM_VERSION}_linux_amd64.zip
+        mv terraform /usr/local/bin/
 
-      - plan:
-          # Create a Terraform plan
-          commands:
-            - terraform plan -out=tfplan
+    - validate: |
+        # Initialize Terraform and validate the configuration
+        terraform init
+        terraform validate
 
-  # You can add more jobs here if needed
+    - plan: |
+        # Create a Terraform plan
+        terraform plan -out=tfplan
+
